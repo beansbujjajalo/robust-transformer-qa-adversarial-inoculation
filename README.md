@@ -1,19 +1,39 @@
-# Robust Question Answering under Dataset Artifacts and Adversarial Distractors
+````md
+# Robust Transformer-Based QA via Adversarial Data Augmentation and Inoculation Fine-Tuning
 
-This project fine-tunes a small transformer QA model on SQuAD, probes it for **dataset artifacts**, and then applies a simple **adversarial / inoculation-style fine-tuning** to make it a bit more robust.
+Course project for **NATURAL LANGUAGE PROCESSING (Fall 2025)**.
 
-Concretely, it lets you:
+This repo fine-tunes a small Transformer QA model on **SQuAD v1.1**, probes it for **dataset artifacts**, and then applies **adversarial / inoculation-style fine-tuning** to improve robustness against **distractor-augmented contexts**.
+
+## What this project does
 
 - Train a **baseline** ELECTRA-small model on SQuAD  
 - Measure **question-only** and **context-only** baselines (artifact probes)  
 - Build an **adversarial training set** by appending distractor sentences to contexts  
-- Fine-tune a **robust** model on the mixture of original + adversarial data  
+- Fine-tune a **robust** model on a mixture of original + adversarial data  
 - Evaluate both models on:
   - Clean SQuAD dev
   - An **adversarial dev** split (distractor-augmented dev)
-  - A tiny **CheckList-style** suite (negation, distractor, entity swap)
+  - A tiny **CheckList-style** behavioral suite (negation, distractor, entity swap)
 
-The code is designed so that you can reuse the pipeline later on other QA datasets.
+The pipeline is designed to be reusable for other extractive QA datasets.
+
+---
+
+## Results (from the project report)
+
+| Setting | Model | EM | F1 |
+|---|---:|---:|---:|
+| Clean SQuAD dev | Baseline | 29.62 | 72.75 |
+| Clean SQuAD dev | Robust | 30.06 | 73.73 |
+| Adversarial dev (2,000 ex) | Baseline | 29.95 | 72.92 |
+| Adversarial dev (2,000 ex) | Robust | 30.55 | 73.69 |
+
+Artifact probes (avg max start×end prob over 200 dev examples):
+- Question-only: 0.1664  
+- Context-only: 0.0722  
+
+> Note: numbers can shift slightly with hardware / library versions; trends should remain consistent.
 
 ---
 
@@ -21,217 +41,180 @@ The code is designed so that you can reuse the pipeline later on other QA datase
 
 Key files:
 
-- `main.py` – command-line entry point. Defines subcommands like `train-baseline`, `eval-baseline`, `build-adversarial`, `train-robust`, `eval-adv-dev`, and `run-checklist`.  
-- `config.py` – central config: seed, training hyperparameters, model name, and adversarial distractor templates.  
-- `data_utils.py` – SQuAD loading and preprocessing (train/validation feature preparation, post-processing predictions).  
-- `model_utils.py` – model + tokenizer loading, training loop (HuggingFace `Trainer`), and question-only / context-only probes.  
-- `robustness_utils.py` – adversarial train/dev construction and adversarial fine-tuning utilities.  
-- `checklist_utils.py` – tiny, static CheckList-style suite (6 examples, 3 categories) and evaluation helper.  
-- `requirements.txt` – Python package requirements (datasets, transformers, torch, etc.).  
+- `main.py` – CLI entry point: `train-baseline`, `eval-baseline`, `build-adversarial`, `train-robust`, `eval-robust`, `eval-adv-dev`, `run-checklist`  
+- `config.py` – seed, hyperparameters, model name, and distractor templates  
+- `data_utils.py` – SQuAD loading + preprocessing + post-processing predictions  
+- `model_utils.py` – model/tokenizer loading, Hugging Face `Trainer`, question-only/context-only probes  
+- `robustness_utils.py` – adversarial train/dev construction + adversarial fine-tuning helpers  
+- `checklist_utils.py` – tiny CheckList-style suite (6 examples, 3 categories)  
+- `requirements.txt` – Python package requirements  
 
 ---
 
 ## 2. Requirements
 
 Tested with:
-
 - Python 3.10+  
-- A machine with **GPU** is strongly recommended (training on CPU is very slow)
-- Internet access (to download SQuAD and the model from Hugging Face)
+- A **GPU** is strongly recommended (CPU training is very slow)
+- Internet access (downloads model + SQuAD)
 
 Install dependencies:
 
 ```bash
 pip install -r requirements.txt
-```
+````
 
-The main packages are:
+Main packages:
 
-- `datasets` (SQuAD loading)
-- `transformers` (ELECTRA model, Trainer)
-- `torch` (PyTorch)
-- `accelerate`, `tqdm`, `numpy`, `scikit-learn`, `matplotlib`
+* `datasets`, `transformers`, `torch`, `accelerate`, `tqdm`, `numpy`, `scikit-learn`, `matplotlib`
 
 ---
 
-## 3. Reproducibility and configuration
+## 3. Dataset (not included in this repo)
 
-All core settings live in `config.py`:
+This repo **does not include SQuAD or other large datasets**.
 
-- `SEED = 42` – used in `main.py` to seed Python, NumPy, and PyTorch so that the train/dev splits and adversarial subsets are reproducible.  
-- `TRAIN_CONFIG` – learning rate, epochs, batch sizes, weight decay, warmup ratio.  
-- `MODEL_NAME` – default model (`google/electra-small-discriminator`).  
-- `MAX_SEQ_LENGTH`, `DOC_STRIDE` – SQuAD max sequence length and sliding window stride.  
-- `ADVERSARIAL_DISTRACTORS` – small list of generic distractor sentences that get appended to contexts for adversarial training/dev.  
+SQuAD is loaded via Hugging Face:
 
-If you want to tweak hyperparameters or swap the base model, the idea is: change it in `config.py`, not in multiple places in the code.
+* `datasets.load_dataset("squad")`
+
+Adversarial data (distractor-augmented) is **generated locally** using `build-adversarial` (see below).
 
 ---
 
-## 4. How to run the full pipeline
+## 4. Reproducibility and configuration
 
-All commands below assume your working directory contains `main.py` (e.g., `robust_qa_project/main.py`).
+Core settings live in `config.py`:
 
-### 4.1 Train the baseline model
+* `SEED = 42`
+* `TRAIN_CONFIG` – LR, epochs, batch sizes, weight decay, warmup ratio
+* `MODEL_NAME` – default: `google/electra-small-discriminator`
+* `MAX_SEQ_LENGTH`, `DOC_STRIDE` – SQuAD windowing params
+* `ADVERSARIAL_DISTRACTORS` – distractor sentences appended to contexts
 
-Fine-tune ELECTRA-small on SQuAD:
+---
+
+## 5. How to run the full pipeline
+
+All commands assume your working directory contains `main.py`.
+
+### 5.1 Train the baseline model
 
 ```bash
-python main.py train-baseline   --output_dir runs/baseline   --num_train_epochs 2   --batch_size 12
+python main.py train-baseline --output_dir runs/baseline --num_train_epochs 2 --batch_size 12
 ```
 
-This will:
-
-- Download SQuAD via `datasets.load_dataset("squad")`  
-- Tokenize train + validation with sliding windows (`prepare_train_features`)  
-- Train for 2 epochs with the configuration in `QAModelConfig`  
-- Save the model + tokenizer into `runs/baseline/`  
-
-You’ll see training and evaluation losses in the logs.
-
----
-
-### 4.2 Evaluate baseline + artifact baselines
-
-Run evaluation on the standard SQuAD dev set:
+### 5.2 Evaluate baseline + artifact probes
 
 ```bash
 python main.py eval-baseline --model_dir runs/baseline
 ```
 
-This does three things:
+Outputs:
 
-1. Computes **EM / F1** on SQuAD dev using the official normalization (lowercasing, removing punctuation/articles).  
-2. Runs a **question-only** probe: feed only the question and an empty context, average the max start×end probability.  
-3. Runs a **context-only** probe: feed an empty question and the full context, again average the max start×end probability.  
+1. SQuAD dev **EM/F1**
+2. **question-only** probe
+3. **context-only** probe
 
-This is how you get the “artifact” numbers that go into the report.
-
----
-
-### 4.3 Build adversarial training data
-
-Next, construct an adversarial training subset by appending distractor sentences to some training contexts:
+### 5.3 Build adversarial training data (5,000 examples)
 
 ```bash
-python main.py build-adversarial   --out_path data/adversarial_train.json   --num_examples 5000
+python main.py build-adversarial --out_path data/adversarial_train.json --num_examples 5000
 ```
 
-Under the hood, this:
-
-- Samples `num_examples` training examples from SQuAD  
-- Appends a random sentence from `config.ADVERSARIAL_DISTRACTORS` to each context  
-- Writes them to `data/adversarial_train.json` as a list of SQuAD-style dicts  
-
----
-
-### 4.4 Adversarial fine-tuning (robust model)
-
-Starting from the baseline checkpoint, fine-tune on the mixture of original + adversarial data:
+### 5.4 Inoculation-style fine-tuning (robust model)
 
 ```bash
-python main.py train-robust   --baseline_dir runs/baseline   --output_dir runs/robust   --adv_path data/adversarial_train.json   --num_train_epochs 1
+python main.py train-robust \
+  --baseline_dir runs/baseline \
+  --output_dir runs/robust \
+  --adv_path data/adversarial_train.json \
+  --num_train_epochs 1
 ```
 
-This:
-
-- Loads SQuAD again and the adversarial JSON file  
-- Tokenizes original train split and adversarial examples with the same `prepare_train_features` logic  
-- Concatenates them into a single training dataset  
-- Runs one epoch of additional training starting from `baseline_dir`  
-
-The robust checkpoint is saved in `runs/robust/`.
-
----
-
-### 4.5 Evaluate the robust model (clean dev)
+### 5.5 Evaluate robust model (clean dev)
 
 ```bash
 python main.py eval-robust --model_dir runs/robust
 ```
 
-This is a thin wrapper around the same SQuAD dev evaluation used for the baseline, just printing `Robust – EM ..., F1 ...`.  
-
----
-
-### 4.6 Evaluate on adversarial dev
-
-Compare how both models behave on a **distractor-augmented dev split**:
+### 5.6 Evaluate on adversarial dev (created on-the-fly)
 
 ```bash
-# Baseline on adversarial dev
 python main.py eval-adv-dev --model_dir runs/baseline --num_examples 2000
-
-# Robust on adversarial dev
-python main.py eval-adv-dev --model_dir runs/robust --num_examples 2000
+python main.py eval-adv-dev --model_dir runs/robust   --num_examples 2000
 ```
 
-`eval-adv-dev` creates an adversarial dev split on the fly (same distractor logic as the train subset) and then reuses the standard EM/F1 evaluation.
-
----
-
-### 4.7 Run the CheckList-style tests
-
-Finally, you can sanity-check the model on a tiny behavioral suite:
+### 5.7 Run the CheckList-style tests (optional)
 
 ```bash
 python main.py run-checklist --model_dir runs/baseline
 python main.py run-checklist --model_dir runs/robust
 ```
 
-The suite is defined statically in `checklist_utils.py` (two examples each for **negation**, **distractor**, and **entity swap**).  
+---
 
-`run_checklist` prints accuracy per category, counting an example as correct if the predicted answer string contains the gold answer.  
+## 6. Typical workflow
+
+```bash
+pip install -r requirements.txt
+
+python main.py train-baseline --output_dir runs/baseline --num_train_epochs 2 --batch_size 12
+python main.py eval-baseline  --model_dir runs/baseline
+
+python main.py build-adversarial --out_path data/adversarial_train.json --num_examples 5000
+python main.py train-robust --baseline_dir runs/baseline --output_dir runs/robust --adv_path data/adversarial_train.json --num_train_epochs 1
+
+python main.py eval-robust   --model_dir runs/robust
+python main.py eval-adv-dev  --model_dir runs/baseline --num_examples 2000
+python main.py eval-adv-dev  --model_dir runs/robust   --num_examples 2000
+
+python main.py run-checklist --model_dir runs/robust
+```
 
 ---
 
-## 5. Typical workflow
+## 7. Customization ideas
 
-If you just want to reproduce the main experiments:
-
-1. **Install deps**  
-   `pip install -r requirements.txt`
-2. **Train baseline**  
-   `python main.py train-baseline --output_dir runs/baseline --num_train_epochs 2 --batch_size 12`
-3. **Evaluate baseline + artifact probes**  
-   `python main.py eval-baseline --model_dir runs/baseline`
-4. **Build adversarial train data**  
-   `python main.py build-adversarial --out_path data/adversarial_train.json --num_examples 5000`
-5. **Train robust model**  
-   `python main.py train-robust --baseline_dir runs/baseline --output_dir runs/robust --adv_path data/adversarial_train.json --num_train_epochs 1`
-6. **Evaluate robust (clean dev)**  
-   `python main.py eval-robust --model_dir runs/robust`
-7. **Evaluate both on adversarial dev**  
-   `python main.py eval-adv-dev --model_dir runs/baseline --num_examples 2000`  
-   `python main.py eval-adv-dev --model_dir runs/robust   --num_examples 2000`
-8. **Run CheckList suite** (optional)  
-   `python main.py run-checklist --model_dir runs/baseline`  
-   `python main.py run-checklist --model_dir runs/robust`
+* Swap the base model: change `MODEL_NAME` in `config.py` (e.g., `bert-base-uncased`)
+* Use stronger distractors: update `ADVERSARIAL_DISTRACTORS`
+* Change clean/adv proportions: downsample or add weighting
+* Plug in another dataset: replace `load_squad()` + post-processing for the new dataset
 
 ---
 
-## 6. Customization ideas
+## 8. Citations / Acknowledgements
 
-A few easy ways to extend this project:
-
-- **Swap the base model**  
-  Change `MODEL_NAME` in `config.py` (e.g., `bert-base-uncased`) and retrain.  
-- **Use stronger distractors**  
-  Edit `ADVERSARIAL_DISTRACTORS` to include more targeted or domain-specific sentences.  
-- **Change train/adv proportions**  
-  Right now, robust training simply concatenates original + adversarial data; you could downsample one or add an `adv_weight` scheme.  
-- **Plug in a different dataset**  
-  Replace `load_squad()` and the post-processing with equivalents for another QA dataset. The model/training logic should mostly carry over.  
+* SQuAD dataset (Rajpurkar et al.)
+* ELECTRA (Clark et al.)
+* Hugging Face Transformers + Datasets
 
 ---
 
-## 7. Troubleshooting notes
+## 9. Troubleshooting
 
-- **AVX / TensorFlow warnings**  
-  You may see messages like “To enable AVX2…”—they’re harmless here; the core training is in PyTorch.
-- **Slow training**  
-  On CPU this will be very slow. Use a GPU runtime (e.g., Colab T4/A100) if possible.
-- **Different EM/F1 from the report**  
-  Even with a fixed seed, small differences in library versions or hardware can move EM/F1 by a few tenths. That’s expected; the important thing is that the trends (baseline vs robust, clean vs adversarial) match.
+* CPU training is slow → use a GPU runtime (e.g., Colab)
+* Slight EM/F1 drift across environments is normal
 
-If you’re using this for a course project or as a starting point for a product, this README is meant to be enough for someone else to rerun your experiments without digging through all the code.
+```
+
+---
+
+## Two quick files I recommend adding
+
+### `.gitignore` (important)
+Add at least:
+- `data/`
+- `runs/`, `outputs/`, `checkpoints/`
+- model artifacts: `*.bin`, `*.pt`, `*.ckpt`
+- caches: `__pycache__/`, `.DS_Store`, `.pytest_cache/`, `.ipynb_checkpoints/`
+
+### `LICENSE`
+MIT is common unless your program requires otherwise.
+
+---
+
+If you want, I can also give you:
+- a clean `.gitignore` tailored to your exact folder names (`runs/`, `data/`, etc.)
+- a 1–2 sentence **repo About** text and the exact **GitHub Topics** list to paste into settings (matching your LinkedIn wording).
+```
