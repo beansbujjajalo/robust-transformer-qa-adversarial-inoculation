@@ -1,0 +1,50 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+ENV/
+env/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+
+# ---- Jupyter / OS ----
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+
+# ---- Data (do not commit datasets) ----
+data/
+datasets/
+*.jsonl
+*.parquet
+
+# ---- Hugging Face / Transformers cache ----
+.cache/
+hf_cache/
+wandb/
+mlruns/
+
+# ---- Outputs / runs / checkpoints ----
+runs/
+outputs/
+checkpoints/
+logs/
+
+# ---- Model artifacts ----
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# ---- Figures / exports (optional: keep if you want) ----
+# figures/
+# *.png
+# *.pdf
