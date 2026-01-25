@@ -1,4 +1,4 @@
-````md
+
 # Robust Transformer-Based QA via Adversarial Data Augmentation and Inoculation Fine-Tuning
 
 Course project for **NATURAL LANGUAGE PROCESSING (Fall 2025)**.
@@ -199,22 +199,3 @@ python main.py run-checklist --model_dir runs/robust
 ```
 
 ---
-
-## Two quick files I recommend adding
-
-### `.gitignore` (important)
-Add at least:
-- `data/`
-- `runs/`, `outputs/`, `checkpoints/`
-- model artifacts: `*.bin`, `*.pt`, `*.ckpt`
-- caches: `__pycache__/`, `.DS_Store`, `.pytest_cache/`, `.ipynb_checkpoints/`
-
-### `LICENSE`
-MIT is common unless your program requires otherwise.
-
----
-
-If you want, I can also give you:
-- a clean `.gitignore` tailored to your exact folder names (`runs/`, `data/`, etc.)
-- a 1–2 sentence **repo About** text and the exact **GitHub Topics** list to paste into settings (matching your LinkedIn wording).
-```
